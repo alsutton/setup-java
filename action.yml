@@ -58,7 +58,8 @@ inputs:
     required: false
   cache-mode:
     description: 'Whether the cache should be read from pre-build, written to afterwards, or both'
-    default: both
+    default: 'both'
+    required: false
   job-status:
     description: 'Workaround to pass job status to post job step. This variable is not intended for manual setting'
     default: ${{ job.status }}
