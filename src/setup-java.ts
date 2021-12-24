@@ -15,6 +15,7 @@ async function run() {
     const packageType = core.getInput(constants.INPUT_JAVA_PACKAGE);
     const jdkFile = core.getInput(constants.INPUT_JDK_FILE);
     const cache = core.getInput(constants.INPUT_CACHE);
+    const cacheMode = core.getInput(constants.INPUT_CACHE_MODE)
     const checkLatest = getBooleanInput(constants.INPUT_CHECK_LATEST, false);
 
     const installerOptions: JavaInstallerOptions = {
@@ -42,10 +43,14 @@ async function run() {
     core.info(`##[add-matcher]${path.join(matchersPath, 'java.json')}`);
 
     await auth.configureAuthentication();
-    const cacheMode = core.getInput(constants.INPUT_CACHE_MODE)
     const restoreCache = Boolean(cacheMode === "both" || cacheMode === "read")
-    if (cache && restoreCache) {
-      await restore(cache);
+    if (cache) {
+      if (restoreCache) {
+        core.info(`Restoring cache due to cache mode ${cacheMode}`)
+        await restore(cache);
+      } else {
+        core.info(`Not restoring cache due to cache mode ${cacheMode}`)
+      }
     }
   } catch (error) {
     core.setFailed(error.message);
