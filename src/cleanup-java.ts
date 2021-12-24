@@ -23,12 +23,12 @@ async function removePrivateKeyFromKeychain() {
 async function saveCache() {
   const jobStatus = isJobStatusSuccess();
   const cache = core.getInput(constants.INPUT_CACHE);
-  const cacheMode = core.getInput(constants.INPUT_CACHE_MODE)
-  const updateCache = Boolean(cacheMode === "both" || cacheMode === "write")
+  const cacheMode = core.getInput(constants.INPUT_CACHE_MODE);
+  const updateCache = Boolean(cacheMode === 'both' || cacheMode === 'write');
   if (!updateCache) {
-    core.info(`Not saving cache due to cache mode ${cacheMode}`)
+    core.info(`Not saving cache due to cache mode ${cacheMode}`);
   } else {
-    core.info(`Saving cache due to cache mode ${cacheMode}`)
+    core.info(`Saving cache due to cache mode ${cacheMode}`);
   }
   return jobStatus && cache && updateCache ? save(cache) : Promise.resolve();
 }
