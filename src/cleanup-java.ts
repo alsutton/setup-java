@@ -30,7 +30,7 @@ async function saveCache() {
   } else {
     core.info(`Saving cache due to cache mode ${cacheMode}`);
   }
-  return jobStatus && cache && updateCache ? save(cache, cacheMode === "write") : Promise.resolve();
+  return jobStatus && cache && updateCache ? save(cache, cacheMode === 'write') : Promise.resolve();
 }
 
 /**

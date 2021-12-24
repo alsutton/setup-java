@@ -64046,24 +64046,27 @@ exports.restore = restore;
  * Save the dependency cache
  * @param id ID of the package manager, should be "maven" or "gradle"
  */
-function save(id) {
+function save(id, forceUpdate) {
     return __awaiter(this, void 0, void 0, function* () {
         const packageManager = findPackageManager(id);
-        const matchedKey = core.getState(CACHE_MATCHED_KEY);
-        // Inputs are re-evaluted before the post action, so we want the original key used for restore
-        const primaryKey = core.getState(STATE_CACHE_PRIMARY_KEY);
-        if (!primaryKey) {
-            core.warning('Error retrieving key from state.');
-            return;
+        if (!forceUpdate) {
+            const matchedKey = core.getState(CACHE_MATCHED_KEY);
+            // Inputs are re-evaluted before the post action, so we want the original key used for restore
+            const primaryKey = core.getState(STATE_CACHE_PRIMARY_KEY);
+            if (!primaryKey) {
+                core.warning('Error retrieving key from state.');
+                return;
+            }
+            else if (matchedKey === primaryKey) {
+                // no change in target directories
+                core.info(`Cache hit occurred on the primary key ${primaryKey}, not saving cache.`);
+                return;
+            }
         }
-        else if (matchedKey === primaryKey) {
-            // no change in target directories
-            core.info(`Cache hit occurred on the primary key ${primaryKey}, not saving cache.`);
-            return;
-        }
+        const cacheKey = yield computeCacheKey(packageManager);
         try {
-            yield cache.saveCache(packageManager.path, primaryKey);
-            core.info(`Cache saved with the key: ${primaryKey}`);
+            yield cache.saveCache(packageManager.path, cacheKey);
+            core.info(`Cache saved with the key: ${cacheKey}`);
         }
         catch (error) {
             if (error.name === cache.ReserveCacheError.name) {
@@ -64166,7 +64169,7 @@ function saveCache() {
         else {
             core.info(`Saving cache due to cache mode ${cacheMode}`);
         }
-        return jobStatus && cache && updateCache ? cache_1.save(cache) : Promise.resolve();
+        return jobStatus && cache && updateCache ? cache_1.save(cache, cacheMode === 'write') : Promise.resolve();
     });
 }
 /**
