@@ -128,9 +128,10 @@ export async function restore(id: string, cacheDependencyPath: string) {
  * Save the dependency cache
  * @param id ID of the package manager, should be "maven" or "gradle"
  */
-export async function save(id: string) {
+export async function save(id: string, forceUpdate: Boolean) {
   const packageManager = findPackageManager(id);
-  const matchedKey = core.getState(CACHE_MATCHED_KEY);
+  if (!forceUpdate) {
+    const matchedKey = core.getState(CACHE_MATCHED_KEY);
 
   // Inputs are re-evaluated before the post action, so we want the original key used for restore
   const primaryKey = core.getState(STATE_CACHE_PRIMARY_KEY);
@@ -145,9 +146,11 @@ export async function save(id: string) {
     );
     return;
   }
+
+  const cacheKey = await computeCacheKey(packageManager);
   try {
-    await cache.saveCache(packageManager.path, primaryKey);
-    core.info(`Cache saved with the key: ${primaryKey}`);
+    await cache.saveCache(packageManager.path, cacheKey);
+    core.info(`Cache saved with the key: ${cacheKey}`);
   } catch (error) {
     const err = error as Error;
 

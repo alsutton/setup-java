@@ -27,6 +27,7 @@ async function run() {
     const cacheDependencyPath = core.getInput(
       constants.INPUT_CACHE_DEPENDENCY_PATH
     );
+    const cacheMode = core.getInput(constants.INPUT_CACHE_MODE);
     const checkLatest = getBooleanInput(constants.INPUT_CHECK_LATEST, false);
     let toolchainIds = core.getMultilineInput(constants.INPUT_MVN_TOOLCHAIN_ID);
 
@@ -79,8 +80,14 @@ async function run() {
     core.info(`##[add-matcher]${path.join(matchersPath, 'java.json')}`);
 
     await auth.configureAuthentication();
+    const restoreCache = Boolean(cacheMode === 'both' || cacheMode === 'read');
     if (cache && isCacheFeatureAvailable()) {
-      await restore(cache, cacheDependencyPath);
+      if (restoreCache) {
+        core.info(`Restoring cache due to cache mode ${cacheMode}`);
+        await restore(cache, cacheDependencyPath);
+      } else {
+        core.info(`Not restoring cache due to cache mode ${cacheMode}`);
+      }
     }
   } catch (error) {
     core.setFailed((error as Error).message);
