@@ -56,6 +56,10 @@ inputs:
   cache:
     description: 'Name of the build platform to cache dependencies. It can be "maven", "gradle" or "sbt".'
     required: false
+  cache-mode:
+    description: 'Whether the cache should be read from an existing cache only, written to after the action, or both'
+    default: 'both'
+    required: false
   job-status:
     description: 'Workaround to pass job status to post job step. This variable is not intended for manual setting'
     default: ${{ job.status }}
