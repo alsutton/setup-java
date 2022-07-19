@@ -78,6 +78,12 @@ The workflow output `cache-hit` is set to indicate if an exact match was found f
 
 The cache input is optional, and caching is turned off by default.
 
+The interaction with the cache can be controlled by the `cache-mode` parameter. This allows for builds to
+be performed with no cache, and the output cached (`write` mode), builds to read the cache before running
+but not update the cache afterwards (`read` mode), or both (`both` mode). This feature allows you to
+populate the cache from your `main` branch, and then let PR builds benefit from that cache without polluting
+it with PR-specific build artifacts.
+
 #### Caching gradle dependencies
 ```yaml
 steps:
