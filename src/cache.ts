@@ -29,7 +29,7 @@ const supportedPackageManager: PackageManager[] = [
   },
   {
     id: 'gradle',
-    path: [join(os.homedir(), '.gradle', 'caches'), join(os.homedir(), '.gradle', 'wrapper')],
+    path: [join(os.homedir(), '.gradle', 'caches')],
     // https://github.com/actions/cache/blob/0638051e9af2c23d10bb70fa9beffcad6cff9ce3/examples.md#java---gradle
     pattern: ['**/*.gradle*', '**/gradle-wrapper.properties']
   },
@@ -108,24 +108,28 @@ export async function restore(id: string) {
  * Save the dependency cache
  * @param id ID of the package manager, should be "maven" or "gradle"
  */
-export async function save(id: string) {
+export async function save(id: string, forceUpdate: Boolean) {
   const packageManager = findPackageManager(id);
-  const matchedKey = core.getState(CACHE_MATCHED_KEY);
+  if (!forceUpdate) {
+    const matchedKey = core.getState(CACHE_MATCHED_KEY);
 
-  // Inputs are re-evaluted before the post action, so we want the original key used for restore
-  const primaryKey = core.getState(STATE_CACHE_PRIMARY_KEY);
+    // Inputs are re-evaluted before the post action, so we want the original key used for restore
+    const primaryKey = core.getState(STATE_CACHE_PRIMARY_KEY);
 
-  if (!primaryKey) {
-    core.warning('Error retrieving key from state.');
-    return;
-  } else if (matchedKey === primaryKey) {
-    // no change in target directories
-    core.info(`Cache hit occurred on the primary key ${primaryKey}, not saving cache.`);
-    return;
+    if (!primaryKey) {
+      core.warning('Error retrieving key from state.');
+      return;
+    } else if (matchedKey === primaryKey) {
+      // no change in target directories
+      core.info(`Cache hit occurred on the primary key ${primaryKey}, not saving cache.`);
+      return;
+    }
   }
+
+  const cacheKey = await computeCacheKey(packageManager);
   try {
-    await cache.saveCache(packageManager.path, primaryKey);
-    core.info(`Cache saved with the key: ${primaryKey}`);
+    await cache.saveCache(packageManager.path, cacheKey);
+    core.info(`Cache saved with the key: ${cacheKey}`);
   } catch (error) {
     if (error.name === cache.ReserveCacheError.name) {
       core.info(error.message);
