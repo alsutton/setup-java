@@ -101375,7 +101375,7 @@ const supportedPackageManager = [
     },
     {
         id: 'gradle',
-        path: [path_1.join(os_1.default.homedir(), '.gradle', 'caches'), path_1.join(os_1.default.homedir(), '.gradle', 'wrapper')],
+        path: [path_1.join(os_1.default.homedir(), '.gradle', 'caches')],
         // https://github.com/actions/cache/blob/0638051e9af2c23d10bb70fa9beffcad6cff9ce3/examples.md#java---gradle
         pattern: ['**/*.gradle*', '**/gradle-wrapper.properties']
     },
@@ -101451,24 +101451,27 @@ exports.restore = restore;
  * Save the dependency cache
  * @param id ID of the package manager, should be "maven" or "gradle"
  */
-function save(id) {
+function save(id, forceUpdate) {
     return __awaiter(this, void 0, void 0, function* () {
         const packageManager = findPackageManager(id);
-        const matchedKey = core.getState(CACHE_MATCHED_KEY);
-        // Inputs are re-evaluted before the post action, so we want the original key used for restore
-        const primaryKey = core.getState(STATE_CACHE_PRIMARY_KEY);
-        if (!primaryKey) {
-            core.warning('Error retrieving key from state.');
-            return;
+        if (!forceUpdate) {
+            const matchedKey = core.getState(CACHE_MATCHED_KEY);
+            // Inputs are re-evaluted before the post action, so we want the original key used for restore
+            const primaryKey = core.getState(STATE_CACHE_PRIMARY_KEY);
+            if (!primaryKey) {
+                core.warning('Error retrieving key from state.');
+                return;
+            }
+            else if (matchedKey === primaryKey) {
+                // no change in target directories
+                core.info(`Cache hit occurred on the primary key ${primaryKey}, not saving cache.`);
+                return;
+            }
         }
-        else if (matchedKey === primaryKey) {
-            // no change in target directories
-            core.info(`Cache hit occurred on the primary key ${primaryKey}, not saving cache.`);
-            return;
-        }
+        const cacheKey = yield computeCacheKey(packageManager);
         try {
-            yield cache.saveCache(packageManager.path, primaryKey);
-            core.info(`Cache saved with the key: ${primaryKey}`);
+            yield cache.saveCache(packageManager.path, cacheKey);
+            core.info(`Cache saved with the key: ${cacheKey}`);
         }
         catch (error) {
             if (error.name === cache.ReserveCacheError.name) {
@@ -101507,7 +101510,7 @@ function isProbablyGradleDaemonProblem(packageManager, error) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.STATE_GPG_PRIVATE_KEY_FINGERPRINT = exports.INPUT_JOB_STATUS = exports.INPUT_CACHE = exports.INPUT_DEFAULT_GPG_PASSPHRASE = exports.INPUT_DEFAULT_GPG_PRIVATE_KEY = exports.INPUT_GPG_PASSPHRASE = exports.INPUT_GPG_PRIVATE_KEY = exports.INPUT_OVERWRITE_SETTINGS = exports.INPUT_SETTINGS_PATH = exports.INPUT_SERVER_PASSWORD = exports.INPUT_SERVER_USERNAME = exports.INPUT_SERVER_ID = exports.INPUT_CHECK_LATEST = exports.INPUT_JDK_FILE = exports.INPUT_DISTRIBUTION = exports.INPUT_JAVA_PACKAGE = exports.INPUT_ARCHITECTURE = exports.INPUT_JAVA_VERSION = exports.MACOS_JAVA_CONTENT_POSTFIX = void 0;
+exports.STATE_GPG_PRIVATE_KEY_FINGERPRINT = exports.INPUT_JOB_STATUS = exports.INPUT_CACHE_MODE = exports.INPUT_CACHE = exports.INPUT_DEFAULT_GPG_PASSPHRASE = exports.INPUT_DEFAULT_GPG_PRIVATE_KEY = exports.INPUT_GPG_PASSPHRASE = exports.INPUT_GPG_PRIVATE_KEY = exports.INPUT_OVERWRITE_SETTINGS = exports.INPUT_SETTINGS_PATH = exports.INPUT_SERVER_PASSWORD = exports.INPUT_SERVER_USERNAME = exports.INPUT_SERVER_ID = exports.INPUT_CHECK_LATEST = exports.INPUT_JDK_FILE = exports.INPUT_DISTRIBUTION = exports.INPUT_JAVA_PACKAGE = exports.INPUT_ARCHITECTURE = exports.INPUT_JAVA_VERSION = exports.MACOS_JAVA_CONTENT_POSTFIX = void 0;
 exports.MACOS_JAVA_CONTENT_POSTFIX = 'Contents/Home';
 exports.INPUT_JAVA_VERSION = 'java-version';
 exports.INPUT_ARCHITECTURE = 'architecture';
@@ -101525,6 +101528,7 @@ exports.INPUT_GPG_PASSPHRASE = 'gpg-passphrase';
 exports.INPUT_DEFAULT_GPG_PRIVATE_KEY = undefined;
 exports.INPUT_DEFAULT_GPG_PASSPHRASE = 'GPG_PASSPHRASE';
 exports.INPUT_CACHE = 'cache';
+exports.INPUT_CACHE_MODE = 'cache-mode';
 exports.INPUT_JOB_STATUS = 'job-status';
 exports.STATE_GPG_PRIVATE_KEY_FINGERPRINT = 'gpg-private-key-fingerprint';
 
@@ -102970,6 +102974,7 @@ function run() {
             const packageType = core.getInput(constants.INPUT_JAVA_PACKAGE);
             const jdkFile = core.getInput(constants.INPUT_JDK_FILE);
             const cache = core.getInput(constants.INPUT_CACHE);
+            const cacheMode = core.getInput(constants.INPUT_CACHE_MODE);
             const checkLatest = util_1.getBooleanInput(constants.INPUT_CHECK_LATEST, false);
             const installerOptions = {
                 architecture,
@@ -102991,8 +102996,15 @@ function run() {
             const matchersPath = path.join(__dirname, '..', '..', '.github');
             core.info(`##[add-matcher]${path.join(matchersPath, 'java.json')}`);
             yield auth.configureAuthentication();
+            const restoreCache = Boolean(cacheMode === 'both' || cacheMode === 'read');
             if (cache && util_1.isCacheFeatureAvailable()) {
-                yield cache_1.restore(cache);
+                if (restoreCache) {
+                    core.info(`Restoring cache due to cache mode ${cacheMode}`);
+                    yield cache_1.restore(cache);
+                }
+                else {
+                    core.info(`Not restoring cache due to cache mode ${cacheMode}`);
+                }
             }
         }
         catch (error) {
