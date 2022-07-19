@@ -35,7 +35,13 @@ describe('cleanup', () => {
       )
     );
     jest.spyOn(core, 'getInput').mockImplementation((name: string) => {
-      return name === 'cache' ? 'gradle' : '';
+      if (name === 'cache') {
+        return 'gradle';
+      } else if (name == 'cache-mode') {
+        return 'both';
+      } else {
+        return '';
+      }
     });
     await cleanup();
     expect(spyCacheSave).toHaveBeenCalled();
@@ -47,7 +53,13 @@ describe('cleanup', () => {
       Promise.reject(new Error('Unexpected error'))
     );
     jest.spyOn(core, 'getInput').mockImplementation((name: string) => {
-      return name === 'cache' ? 'gradle' : '';
+      if (name === 'cache') {
+        return 'gradle';
+      } else if (name == 'cache-mode') {
+        return 'both';
+      } else {
+        return '';
+      }
     });
     await cleanup();
     expect(spyCacheSave).toHaveBeenCalled();

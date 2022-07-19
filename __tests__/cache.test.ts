@@ -270,7 +270,7 @@ describe('dependency cache', () => {
     });
 
     it('throws error if unsupported package manager specified', () => {
-      return expect(save('ant')).rejects.toThrow(
+      return expect(save('ant', false)).rejects.toThrow(
         'unknown package manager specified: ant'
       );
     });
@@ -279,7 +279,7 @@ describe('dependency cache', () => {
       spyCacheSave.mockImplementation(() => Promise.resolve(-1));
       createStateForMissingBuildFile();
 
-      await save('maven');
+      await save('maven', false);
       expect(spyCacheSave).toHaveBeenCalled();
       expect(spyWarning).not.toHaveBeenCalled();
       expect(spyInfo).toHaveBeenCalled();
@@ -295,7 +295,7 @@ describe('dependency cache', () => {
       createStateForMissingBuildFile();
 
       expect.assertions(1);
-      await expect(save('maven')).rejects.toEqual(
+      await expect(save('maven', false)).rejects.toEqual(
         new cache.ValidationError('Validation failed')
       );
     });
@@ -303,14 +303,14 @@ describe('dependency cache', () => {
     describe('for maven', () => {
       it('uploads cache even if no pom.xml found', async () => {
         createStateForMissingBuildFile();
-        await save('maven');
+        await save('maven', false);
         expect(spyCacheSave).toHaveBeenCalled();
         expect(spyWarning).not.toHaveBeenCalled();
       });
       it('does not upload cache if no restore run before', async () => {
         createFile(join(workspace, 'pom.xml'));
 
-        await save('maven');
+        await save('maven', false);
         expect(spyCacheSave).not.toHaveBeenCalled();
         expect(spyWarning).toHaveBeenCalledWith(
           'Error retrieving key from state.'
@@ -320,7 +320,7 @@ describe('dependency cache', () => {
         createFile(join(workspace, 'pom.xml'));
         createStateForSuccessfulRestore();
 
-        await save('maven');
+        await save('maven', false);
         expect(spyCacheSave).toHaveBeenCalled();
         expect(spyWarning).not.toHaveBeenCalled();
         expect(spyInfo).toHaveBeenCalledWith(
@@ -332,14 +332,14 @@ describe('dependency cache', () => {
       it('uploads cache even if no build.gradle found', async () => {
         createStateForMissingBuildFile();
 
-        await save('gradle');
+        await save('gradle', false);
         expect(spyCacheSave).toHaveBeenCalled();
         expect(spyWarning).not.toHaveBeenCalled();
       });
       it('does not upload cache if no restore run before', async () => {
         createFile(join(workspace, 'build.gradle'));
 
-        await save('gradle');
+        await save('gradle', false);
         expect(spyCacheSave).not.toHaveBeenCalled();
         expect(spyWarning).toHaveBeenCalledWith(
           'Error retrieving key from state.'
@@ -349,7 +349,7 @@ describe('dependency cache', () => {
         createFile(join(workspace, 'build.gradle'));
         createStateForSuccessfulRestore();
 
-        await save('gradle');
+        await save('gradle', false);
         expect(spyCacheSave).toHaveBeenCalled();
         expect(spyWarning).not.toHaveBeenCalled();
         expect(spyInfo).toHaveBeenCalledWith(
@@ -360,7 +360,7 @@ describe('dependency cache', () => {
         createFile(join(workspace, 'build.gradle.kts'));
         createStateForSuccessfulRestore();
 
-        await save('gradle');
+        await save('gradle', false);
         expect(spyCacheSave).toHaveBeenCalled();
         expect(spyWarning).not.toHaveBeenCalled();
         expect(spyInfo).toHaveBeenCalledWith(
@@ -383,14 +383,14 @@ describe('dependency cache', () => {
     describe('for sbt', () => {
       it('uploads cache even if no build.sbt found', async () => {
         createStateForMissingBuildFile();
-        await save('sbt');
+        await save('sbt', false);
         expect(spyCacheSave).toHaveBeenCalled();
         expect(spyWarning).not.toHaveBeenCalled();
       });
       it('does not upload cache if no restore run before', async () => {
         createFile(join(workspace, 'build.sbt'));
 
-        await save('sbt');
+        await save('sbt', false);
         expect(spyCacheSave).not.toHaveBeenCalled();
         expect(spyWarning).toHaveBeenCalledWith(
           'Error retrieving key from state.'
@@ -400,7 +400,7 @@ describe('dependency cache', () => {
         createFile(join(workspace, 'build.sbt'));
         createStateForSuccessfulRestore();
 
-        await save('sbt');
+        await save('sbt', false);
         expect(spyCacheSave).toHaveBeenCalled();
         expect(spyWarning).not.toHaveBeenCalled();
         expect(spyInfo).toHaveBeenCalledWith(
@@ -411,7 +411,7 @@ describe('dependency cache', () => {
         createFile(join(workspace, 'versions.properties'));
         createStateForSuccessfulRestore();
 
-        await save('gradle');
+        await save('gradle', false);
         expect(spyCacheSave).toHaveBeenCalled();
         expect(spyWarning).not.toHaveBeenCalled();
         expect(spyInfo).toHaveBeenCalledWith(
