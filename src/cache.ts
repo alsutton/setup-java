@@ -106,21 +106,24 @@ async function computeCacheKey(
  * @param id ID of the package manager, should be "maven" or "gradle"
  * @param cacheDependencyPath The path to a dependency file
  */
-export async function restore(id: string, cacheDependencyPath: string) {
+export async function restore(id: string, cacheDependencyPath: string, performRestore: Boolean) {
   const packageManager = findPackageManager(id);
   const primaryKey = await computeCacheKey(packageManager, cacheDependencyPath);
   core.debug(`primary key is ${primaryKey}`);
   core.saveState(STATE_CACHE_PRIMARY_KEY, primaryKey);
 
-  // No "restoreKeys" is set, to start with a clear cache after dependency update (see https://github.com/actions/setup-java/issues/269)
-  const matchedKey = await cache.restoreCache(packageManager.path, primaryKey);
-  if (matchedKey) {
-    core.saveState(CACHE_MATCHED_KEY, matchedKey);
-    core.setOutput('cache-hit', matchedKey === primaryKey);
-    core.info(`Cache restored from key: ${matchedKey}`);
-  } else {
-    core.setOutput('cache-hit', false);
-    core.info(`${packageManager.id} cache is not found`);
+  // Only perform the cache restore if requested
+  if (performRestore) {
+    // No "restoreKeys" is set, to start with a clear cache after dependency update (see https://github.com/actions/setup-java/issues/269)
+    const matchedKey = await cache.restoreCache(packageManager.path, primaryKey);
+    if (matchedKey) {
+      core.saveState(CACHE_MATCHED_KEY, matchedKey);
+      core.setOutput('cache-hit', matchedKey === primaryKey);
+      core.info(`Cache restored from key: ${matchedKey}`);
+    } else {
+      core.setOutput('cache-hit', false);
+      core.info(`${packageManager.id} cache is not found`);
+    }
   }
 }
 

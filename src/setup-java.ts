@@ -82,12 +82,7 @@ async function run() {
     await auth.configureAuthentication();
     const restoreCache = Boolean(cacheMode === 'both' || cacheMode === 'read');
     if (cache && isCacheFeatureAvailable()) {
-      if (restoreCache) {
-        core.info(`Restoring cache due to cache mode ${cacheMode}`);
-        await restore(cache, cacheDependencyPath);
-      } else {
-        core.info(`Not restoring cache due to cache mode ${cacheMode}`);
-      }
+      await restore(cache, cacheDependencyPath, restoreCache);
     }
   } catch (error) {
     core.setFailed((error as Error).message);
