@@ -35,12 +35,9 @@ const supportedPackageManager: PackageManager[] = [
     ],
     // https://github.com/actions/cache/blob/0638051e9af2c23d10bb70fa9beffcad6cff9ce3/examples.md#java---gradle
     pattern: [
-      '**/*.gradle*',
-      '**/gradle-wrapper.properties',
-      'buildSrc/**/Versions.kt',
-      'buildSrc/**/Dependencies.kt',
-      'gradle/*.versions.toml',
-      '**/versions.properties'
+      'gradle/wrapper/gradle-wrapper.properties',
+      'gradle.properties*',
+      'settings.gradle*',
     ]
   },
   {
@@ -115,7 +112,7 @@ export async function restore(id: string, cacheDependencyPath: string, performRe
   // Only perform the cache restore if requested
   if (performRestore) {
     // No "restoreKeys" is set, to start with a clear cache after dependency update (see https://github.com/actions/setup-java/issues/269)
-    const matchedKey = await cache.restoreCache(packageManager.path, primaryKey);
+    const matchedKey = await cache.restoreCache(packageManager.path, primaryKey, [primaryKey]);
     if (matchedKey) {
       core.saveState(CACHE_MATCHED_KEY, matchedKey);
       core.setOutput('cache-hit', matchedKey === primaryKey);
