@@ -88141,7 +88141,7 @@ function restore(id, cacheDependencyPath, performRestore) {
             }
             else {
                 core.setOutput('cache-hit', false);
-                core.info(`${packageManager.id} cache is not found`);
+                core.info(`${packageManager.id} cache is not found for key ${primaryKey}`);
             }
         }
     });

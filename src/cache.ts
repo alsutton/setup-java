@@ -122,7 +122,7 @@ export async function restore(id: string, cacheDependencyPath: string, performRe
       core.info(`Cache restored from key: ${matchedKey}`);
     } else {
       core.setOutput('cache-hit', false);
-      core.info(`${packageManager.id} cache is not found`);
+      core.info(`${packageManager.id} cache is not found for key ${primaryKey}`);
     }
   }
 }
