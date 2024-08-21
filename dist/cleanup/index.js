@@ -88129,7 +88129,7 @@ function restore(id, cacheDependencyPath, performRestore) {
         // Only perform the cache restore if requested
         if (performRestore) {
             // No "restoreKeys" is set, to start with a clear cache after dependency update (see https://github.com/actions/setup-java/issues/269)
-            const matchedKey = yield cache.restoreCache(packageManager.path, primaryKey, [primaryKey]);
+            const matchedKey = yield cache.restoreCache(packageManager.path, primaryKey, [`${CACHE_KEY_PREFIX}-${process.env['RUNNER_OS']}-${packageManager.id}`]);
             if (matchedKey) {
                 core.saveState(CACHE_MATCHED_KEY, matchedKey);
                 core.setOutput('cache-hit', matchedKey === primaryKey);
