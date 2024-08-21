@@ -31,7 +31,6 @@ const supportedPackageManager: PackageManager[] = [
     id: 'gradle',
     path: [
       join(os.homedir(), '.gradle', 'caches'),
-      join(os.homedir(), '.gradle', 'wrapper')
     ],
     // https://github.com/actions/cache/blob/0638051e9af2c23d10bb70fa9beffcad6cff9ce3/examples.md#java---gradle
     pattern: [
